@@ -1,0 +1,144 @@
+body {
+    color: #3f3f3f;
+    background-color: #f4f4f4;
+    height: 100vh;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+#root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.background {
+    position: absolute;
+    filter: blur(7px);
+    opacity: 0.5;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    background-image: url(../img/medicina.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.header-wrapper {
+    display: block;
+    width: 100%;
+}
+
+.header {
+    background-color: cornflowerblue;
+    height: auto;
+    padding: 10px 20px;
+}
+
+#header-site-title {
+    margin-left: 40px;
+    font-size: 30px;
+    color: aliceblue;
+}
+
+#login-form {
+    display: block;
+    margin-top: 13%;
+}
+
+#about-site {
+    display: block;
+    margin: auto;
+    margin-top: 25%;
+    height: 100%;
+    text-align: center;
+    padding: 1px 40px;
+}
+
+.plain-text {
+    font-size: 22px;
+    text-align: justify;
+}
+
+.hr {
+    display: block;
+    margin: auto;
+    width: 80%;
+    height: 1px;
+    background-color: dimgrey;
+}
+
+.material-card {
+     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+.material-card:focus-within {
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+#log-form {
+    display: block;
+    margin: auto;
+    padding: 32px 35px 20px 30px;
+    border-radius: 6px;
+    width: 70%;
+    margin-bottom: 30px;
+}
+
+.blue {
+    background-color: #a0d1ff;
+}
+
+.field {
+    margin: auto;
+    margin-bottom: 10px;
+    font-size: 18px;
+    box-shadow: 1px 1px 8px;
+    padding: 10px 10px;
+}
+
+.form-lbl {
+    font-size: 20px;
+}
+
+.m-btn {
+    min-width: 120px;
+    font-size: 18px;
+    text-transform: uppercase;
+    box-shadow: 1px 1px 8px black;
+}
+
+.m-btn:hover {
+    box-shadow: 2px 2px 8px black;
+}
+
+.link {
+    font-size: 18px;
+    margin-left: 10%;
+    
+}
+
+.mt {
+    margin-top: 20px;
+}
+
+.option-list {
+    list-style: none;
+    padding-left: 0 !important;
+    width: 100%;
+}
+
+.option-list > li {
+    display: inline-block;
+    width: auto;
+    white-space: nowrap;
+}
+
+.linear {
+    display: inline;
+}
