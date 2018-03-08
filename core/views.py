@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
-
 # Create your views here.
+from core.helpers import send_email_with_security_code
+
+
 def sign_in(request):
     if request.user.is_active:
         return redirect("/main/")
@@ -37,3 +39,13 @@ def logout_view(request):
 @login_required(login_url='/sign-in/')
 def main(request):
     return HttpResponse(request.user.username)
+
+
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        send_email_with_security_code(email)
+        logout(request)
+        return redirect('/forgot-password/')
+    else:
+        return render(request, 'core/forgot-password.html', {})
