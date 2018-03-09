@@ -27,20 +27,27 @@ def send_email_with_security_code(toaddr):
     send_email(toaddr, message)
 
 
-def calc_probability(diseases: list = None, symptoms: list = None) -> list:
-    diseases = [['Грипп', 0.2], ['ОРЗ', 0.25], ['Назофарингит', 0.35], ['Гипертония', 0.1], ['Б оружие', 0.1]]  # y
-    print(sum([d[1] for d in diseases]))
-    symptoms = ['кашель', 'насморк', 'головная боль']  # x
+def normalize(diseases: list):
+    summ = sum([d[1] for d in diseases])
+    for d in diseases:
+        d[1] = d[1] * (1 / summ)
+    return diseases
 
+
+def calc_probability(diseases: list = None, symptoms: list = None) -> list:
+    symptoms = ['кашель', 'насморк', 'головная боль']  # x
+    diseases = [['Грипп', 0.2, 3], ['ОРЗ', 0.25, 3], ['Назофарингит', 0.35, 3], ['Гипертония', 0.1, 1]]  # y
+    diseases = list(filter(lambda x: x[2] > (len(symptoms) * 0.75), diseases))
+    diseases = normalize(diseases)
     p_symptoms_diseases = [
         [0.9, 0.7, 0.9],
         [0.5, 1, 0.9],
         [0.6, 1, 0.2],
-        [0, 0, 1],
-        [1, 1, 1],
+        # [0, 0, 1],
+        # [1, 1, 1],
     ]
 
-    p_symptoms_not_diseases = a = [[0] * len(symptoms) for i in range(len(diseases))]
+    p_symptoms_not_diseases = [[0] * len(symptoms) for i in range(len(diseases))]
 
     for i in range(len(diseases)):
         for j in range(len(symptoms)):
@@ -50,8 +57,6 @@ def calc_probability(diseases: list = None, symptoms: list = None) -> list:
                     summ += p_symptoms_diseases[k][j]
 
             p_symptoms_not_diseases[i][j] = summ / (len(diseases) - 1)
-
-    print(p_symptoms_not_diseases)
 
     p_s_d: "cимптом s при условии заболевания d"
     p_d: "заболевание d (без уточнения)"
@@ -64,9 +69,8 @@ def calc_probability(diseases: list = None, symptoms: list = None) -> list:
             p_s_not_d = p_symptoms_not_diseases[i][j]
             p_d_s = p_s_d * p_d / (p_s_d * p_d + p_s_not_d * (1 - p_d))
             diseases[i][1] = p_d_s
-    summ = sum([d[1] for d in diseases])
-    print(summ)
-    return diseases if summ < 1.2 else [["Calculation error", 1.0]]
+
+    return normalize(diseases)
 
 
 if __name__ == "__main__":
@@ -74,5 +78,4 @@ if __name__ == "__main__":
     result.sort(key=lambda x: x[1], reverse=True)
     print(result)
     result = list(filter(lambda x: x[1] >= 0.2, result))
-    coverage = sum([d[1] for d in result])
-    print(result, "coverage", coverage, coverage > 0.8)
+    print(result)
