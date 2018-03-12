@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
 # Create your views here.
+from django.views.generic import TemplateView
+
 from core.helpers import send_email_with_security_code
 
 
@@ -49,3 +51,8 @@ def forgot_password(request):
         return redirect('/forgot-password/')
     else:
         return render(request, 'core/forgot-password.html', {})
+
+
+#React.js template
+class IndexTemplate(TemplateView):
+    template_name = 'build/index.html'

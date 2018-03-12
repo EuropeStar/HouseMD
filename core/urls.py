@@ -11,5 +11,6 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot-password'),
 
     # api urls
-    url(r'^api/v0/', include('api_v0.urls'))
+    url(r'^api/v0/', include('api_v0.urls')),
+    url(r'^$', views.IndexTemplate.as_view())
 ]
