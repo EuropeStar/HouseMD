@@ -55,4 +55,4 @@ def forgot_password(request):
 
 #React.js template
 class IndexTemplate(TemplateView):
-    template_name = 'build/index.html'
+    template_name = 'index.html'
