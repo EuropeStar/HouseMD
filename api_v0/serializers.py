@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
 
 from core.models import *
@@ -8,6 +7,7 @@ class DiseaseSerializer(ModelSerializer):
     class Meta:
         model = Disease
         fields = '__all__'
+
 
 class SymptomSerializer(ModelSerializer):
     class Meta:
@@ -27,8 +27,30 @@ class ContraindicationSerializer(ModelSerializer):
         fields = '__all__'
 
 
-
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
+        fields = '__all__'
+
+
+class ProfileSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
+class ActiveSubstanceSerializer(ModelSerializer):
+    class Meta:
+        model = ActiveSubstance
+        fields = '__all__'
+
+
+class SideEffectSerializer(ModelSerializer):
+    class Meta:
+        model = SideEffect
+        fields = '__all__'
+
+class ExaminationSerializer(ModelSerializer):
+    class Meta:
+        model = Examination
         fields = '__all__'
