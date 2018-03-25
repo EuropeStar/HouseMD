@@ -38,6 +38,22 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+class ActiveSubstanceViewSet(viewsets.ModelViewSet):
+    queryset = ActiveSubstance.objects.all()
+    serializer_class = ActiveSubstanceSerializer
+
+class SideEffectViewSet(viewsets.ModelViewSet):
+    queryset = SideEffect.objects.all()
+    serializer_class = SideEffectSerializer
+
+class ExaminationViewSet(viewsets.ModelViewSet):
+    queryset = Examination.objects.all()
+    serializer_class = ExaminationSerializer
+
 # class UserList(generics.ListCreateAPIView):
 #     model = User
 #     serializer_class = UserSerializer
