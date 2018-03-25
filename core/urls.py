@@ -3,6 +3,7 @@ from django.urls import path, include
 
 from core import views
 
+app_name = 'core'
 urlpatterns = [
     path('sign-in/', views.sign_in, name='sign-in'),
     path('accounts/login/', views.login_view, name='login'),

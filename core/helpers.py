@@ -43,9 +43,12 @@ def calc_probability(diseases: list = None, symptoms: list = None) -> list:
         [0.9, 0.7, 0.9],
         [0.5, 1, 0.9],
         [0.6, 1, 0.2],
-        # [0, 0, 1],
+        [0, 0, 1],
         # [1, 1, 1],
     ]
+
+    for row in p_symptoms_diseases:
+        row.sort(key=lambda x: x, reverse=True)
 
     p_symptoms_not_diseases = [[0] * len(symptoms) for i in range(len(diseases))]
 
@@ -69,7 +72,6 @@ def calc_probability(diseases: list = None, symptoms: list = None) -> list:
             p_s_not_d = p_symptoms_not_diseases[i][j]
             p_d_s = p_s_d * p_d / (p_s_d * p_d + p_s_not_d * (1 - p_d))
             diseases[i][1] = p_d_s
-
     return normalize(diseases)
 
 
