@@ -33,13 +33,13 @@ def login_view(request):
         messages.add_message(request, messages.INFO, "invalid login or password")
         return HttpResponseRedirect(reverse('core:sign-in'))
 
-@login_required(login_url='/sign-in/')
+@login_required(login_url='/sign-in')
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("core:sign-in"))
 
 
-@login_required(login_url='/sign-in/')
+@login_required(login_url='/sign-in')
 def main(request):
     return HttpResponse(request.user.username)
 
