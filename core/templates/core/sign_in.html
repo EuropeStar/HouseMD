@@ -1,0 +1,57 @@
+{% extends 'core/base.html' %}
+{% load staticfiles %}
+{% block title %}
+    HouseMD System
+{% endblock %}
+{% block content %}
+<div class="background"></div>
+<div id='root'>
+    <!-- Header -->
+    <div class="header-wrapper">
+        <div class="header">
+            <h3 id='header-site-title'>HouseMD</h3>
+        </div>
+    </div>
+    <!-- Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class='col-lg-7'>
+                <div id="about-site">
+                    <h2>Wellcome to HouseMD medicine system.</h2>
+                    <div class="hr"></div>
+                    <p class="plain-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vel diam
+                        ante. Proin sit amet magna et nibh suscipit accumsan dignissim vitae arcu. Nam id turpis
+                        bibendum tellus egestas rutrum. Mauris arcu leo, pretium sit amet est quis, pharetra interdum
+                        nulla. Integer et enim laoreet lacus congue rutrum et vitae mauris. Nulla facilisi. Proin congue
+                        lorem risus, ac pellentesque nisi bibendum vel. Vivamus fermentum in justo sed euismod. Duis
+                        cursus volutpat dolor, nec tempor erat accumsan in. Integer vulputate porta nisl, id efficitur
+                        augue tempor eget. Donec ut nisl non erat accumsan malesuada in eget tellus. Nulla facilisis
+                        imperdiet nisl sed tristique. Morbi eu aliquam nisi.</p>
+                </div>
+            </div>
+            <div class="col-lg-5" id="login-form">
+                <div class="card blue material-card" id="log-form">
+                    {% if messages %}
+                        {% for message in messages %}
+                              <p>{{ message }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    <form class="form-group" action="/accounts/login/" method="post">
+                        {% csrf_token %}
+                        <label for="login" class="form-lbl">Username</label>
+                        <input name="login" type="text" placeholder="Example" class='form-control field'/>
+                        <label for="pass" class="form-lbl">Password</label>
+                        <input name="pass" type="password" placeholder="Password" class="form-control field"/>
+                        <div class="mt">
+                            <ul class="option-list linear">
+                                <li><input type="submit" value="Login" class='btn btn-primary m-btn'/></li>
+                                <li><a href="/forgot-password/" class="link" methods="get">Forgot password</a></li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
