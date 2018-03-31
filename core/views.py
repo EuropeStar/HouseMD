@@ -3,8 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-# Create your views here.
 from django.urls import reverse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from core.helpers import send_email_with_security_code
 
@@ -39,9 +40,21 @@ def logout_view(request):
     return HttpResponseRedirect(reverse("core:sign-in"))
 
 
+
 @login_required(login_url='/sign-in')
+@api_view(['GET'])
 def main(request):
-    return HttpResponse(request.user.username)
+    return Response({})
+
+@login_required(login_url='/sign-in')
+@api_view(['GET'])
+def profile(request):
+    return Response({})
+
+@login_required(login_url='/sign-in')
+@api_view(['GET'])
+def notifications(request):
+    return Response({})
 
 
 def forgot_password(request):
@@ -52,4 +65,7 @@ def forgot_password(request):
         return HttpResponseRedirect(reverse('core:forgot-password'))
     else:
         return render(request, 'core/forgot-password.html', {})
+
+
+
 
