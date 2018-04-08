@@ -8,8 +8,9 @@ from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 
+from api_v0.serializers import ProfileSerializer, NotificationSerializer, ExaminationSerializer
 from core.helpers import send_email_with_security_code
-from core.models import Notification
+from core.models import Notification, Profile, Examination
 
 
 def sign_in(request):
@@ -48,15 +49,31 @@ def logout_view(request):
 @renderer_classes((JSONRenderer,))
 def main(request):
     user = request.user
+    last_notifications = Notification.objects.filter(user=user).order_by('-date_time')[:2]
+    last_examinatinos = Examination.objects.filter(doctor=user).order_by('-date_time')[:2]
+    #notifications_amount = Notification.objects.filter(user=user).count()
 
-    notifications_amount = Notification.objects.filter(user=user).count()
+    notifs_serializer = NotificationSerializer(last_notifications, many=True)
+    notifs_data = notifs_serializer.data
 
-    return Response({})
+    exams_serializer = ExaminationSerializer(last_examinatinos, many=True)
+    exams_data = exams_serializer.data
+
+    data = {
+        notifs_data,
+        exams_data
+    }
+
+    return Response(data, template_name='core/main.html')
 
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
+@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 def profile(request):
-    return Response({})
+    profile = Profile.objects.get(user=request.user)
+    serializer = ProfileSerializer(profile)
+    profile_data = serializer.data
+    return Response(profile_data, template_name='core/profile.html')
 
 
 @login_required(login_url='/sign-in')
@@ -65,7 +82,7 @@ def profile(request):
 def notifications(request):
     user = request.user
     notifs = Notification.objects.filter(user=user)
-    serializer = Notification(instance=notifs)
+    serializer = NotificationSerializer(instance=notifs, many=True)
     data = serializer.data
     return Response(data, template_name='core/notifications.html')
 
