@@ -178,21 +178,25 @@ class Profile(models.Model):
 
 
 class Notification(models.Model):
+    CONFIRMED = 0
+    REQUESTED = 1
+    REJECTED = 2
+
     DIAGNOSIS_STATUS_CHOICES = (
-        ('0' , 'Диагноз подтвержден'),
-        ('1', 'Запрос на подтверждение диагноза'),
-        ('2', 'Диагноз отклонен'),
+        (CONFIRMED, 'Диагноз подтвержден'),
+        (REQUESTED, 'Запрос на подтверждение диагноза'),
+        (REJECTED, 'Диагноз отклонен'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь')
     diagnosis = models.ForeignKey(Disease, on_delete=models.CASCADE, verbose_name='диагноз')
     description = models.CharField(max_length=255, blank=True, verbose_name='описание')
-    status = models.CharField(max_length=1, blank=False, verbose_name='статус диагноза', choices=DIAGNOSIS_STATUS_CHOICES)
+    status = models.IntegerField(blank=False, verbose_name='статус диагноза', choices=DIAGNOSIS_STATUS_CHOICES)
     date_time = models.DateTimeField(auto_now=True)
     is_readed = models.BooleanField(default=False, verbose_name='прочитано')
 
     def __str__(self):
-        return self.diagnosis.name + ' ' + self.status
+        return self.diagnosis.name + ' ' + str(self.status)
 
     class Meta:
         verbose_name = "уведомление"
