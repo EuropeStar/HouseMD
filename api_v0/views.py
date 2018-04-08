@@ -54,6 +54,10 @@ class ExaminationViewSet(viewsets.ModelViewSet):
     queryset = Examination.objects.all()
     serializer_class = ExaminationSerializer
 
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
 # class UserList(generics.ListCreateAPIView):
 #     model = User
 #     serializer_class = UserSerializer
