@@ -54,3 +54,8 @@ class ExaminationSerializer(ModelSerializer):
     class Meta:
         model = Examination
         fields = '__all__'
+
+class NotificationSerializer(ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'

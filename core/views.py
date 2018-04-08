@@ -4,10 +4,12 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 
 from core.helpers import send_email_with_security_code
+from core.models import Notification
 
 
 def sign_in(request):
@@ -43,7 +45,12 @@ def logout_view(request):
 
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
+@renderer_classes((JSONRenderer,))
 def main(request):
+    user = request.user
+
+    notifications_amount = Notification.objects.filter(user=user).count()
+
     return Response({})
 
 @login_required(login_url='/sign-in')
@@ -51,11 +58,16 @@ def main(request):
 def profile(request):
     return Response({})
 
+
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
+@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 def notifications(request):
-    return Response({})
-
+    user = request.user
+    notifs = Notification.objects.filter(user=user)
+    serializer = Notification(instance=notifs)
+    data = serializer.data
+    return Response(data, template_name='core/notifications.html')
 
 def forgot_password(request):
     if request.method == 'POST':
