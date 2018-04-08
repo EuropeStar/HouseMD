@@ -5,7 +5,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 # Create your views here.
 from django.urls import reverse
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 
+from api_v0.serializers import ProfileSerializer, ExaminationSerializer
 from core.helpers import send_email_with_security_code
 from core.models import *
 
@@ -35,6 +39,7 @@ def login_view(request):
     else:
         messages.add_message(request, messages.INFO, "некорректный логин или пароль")
         return HttpResponseRedirect(reverse('core:sign-in'))
+
 
 @login_required(login_url='/sign-in')
 def logout_view(request):
@@ -78,3 +83,33 @@ def insert_connections(request):
             sym = Symptom.objects.get(pk=id)
             dis.symptoms.add(sym)
     return HttpResponse("OK" + str(Symptom.objects.count()))
+
+
+@login_required(login_url='/sign-in')
+@api_view(['GET'])
+@renderer_classes((JSONRenderer,))
+def personal_administration(request):
+    profiles = Profile.objects.all()
+    profiles_serializer = ProfileSerializer(profiles, many=True)
+    data = profiles_serializer.data
+    return Response(data, template_name='core/personal_administration.html')
+
+
+@login_required(login_url='/sign-in')
+@api_view(['GET'])
+@renderer_classes((JSONRenderer,))
+def history(request):
+    examinations = Examination.objects.all()
+    examination_serializer = ExaminationSerializer(examinations, many=True)
+    data = examination_serializer.data
+    return Response(data, template_name='core/history.html')
+
+
+@login_required(login_url='/sign-in')
+@api_view(['GET'])
+@renderer_classes((JSONRenderer,))
+def confirmation(request, examination_id):
+    examination = Examination.objects.get(pk=examination_id)
+    examination_serializer = ExaminationSerializer(examination)
+    data = examination_serializer.data
+    return Response(data, template_name='core/confirmation.html')
