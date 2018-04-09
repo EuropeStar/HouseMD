@@ -99,7 +99,8 @@ def personal_administration(request):
 @api_view(['GET'])
 @renderer_classes((JSONRenderer,))
 def history(request):
-    examinations = Examination.objects.all()
+    user = request.user
+    examinations = Examination.objects.filter(doctor=user).order_by('-date_time')[:10]
     examination_serializer = ExaminationSerializer(examinations, many=True)
     data = examination_serializer.data
     return Response(data, template_name='core/history.html')
