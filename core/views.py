@@ -46,7 +46,6 @@ def logout_view(request):
 
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
-@renderer_classes((JSONRenderer,))
 def main(request):
     user = request.user
     last_notifications = Notification.objects.filter(user=user).order_by('-date_time')[:2]
@@ -59,32 +58,29 @@ def main(request):
     exams_serializer = ExaminationSerializer(last_examinatinos, many=True)
     exams_data = exams_serializer.data
 
-    data = {
+    data = [
         notifs_data,
         exams_data
-    }
+    ]
 
-    return Response(data, template_name='core/main.html')
+    return Response(data)
 
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
-@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 def profile(request):
     profile = Profile.objects.get(user=request.user)
     serializer = ProfileSerializer(profile)
     profile_data = serializer.data
-    return Response(profile_data, template_name='core/profile.html')
+    return Response(profile_data)
 
 
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
-@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 def notifications(request):
     user = request.user
     notifs = Notification.objects.filter(user=user)
-    serializer = NotificationSerializer(instance=notifs, many=True)
-    data = serializer.data
-    return Response(data, template_name='core/notifications.html')
+    serializer = NotificationSerializer(notifs, many=True)
+    return Response(serializer.data)
 
 def forgot_password(request):
     if request.method == 'POST':
