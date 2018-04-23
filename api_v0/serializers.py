@@ -61,7 +61,6 @@ class ProfileSerializer(ModelSerializer):
         user = User.objects.create_user(id=attrs.get('user.id'))
         return Profile(user=user)
 
-
 class ActiveSubstanceSerializer(ModelSerializer):
     class Meta:
         model = ActiveSubstance
@@ -96,4 +95,9 @@ class ExaminationSerializer(ModelSerializer):
 
     class Meta:
         model = Examination
+        fields = '__all__'
+
+class NotificationSerializer(ModelSerializer):
+    class Meta:
+        model = Notification
         fields = '__all__'

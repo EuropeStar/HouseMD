@@ -68,12 +68,17 @@ class ExaminationViewSet(viewsets.ModelViewSet):
     queryset = Examination.objects.all()
     serializer_class = ExaminationSerializer
 
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
     def retrieve(self, request, pk=None, *args, **kwargs):
         helpers.calc_probability(pk=pk, doctor=request.user, patient="")
         queryset = Examination.objects.all()
         ex = get_object_or_404(queryset, pk=pk)
         serializer = ExaminationSerializer(ex)
         return Response(serializer.data)
+
 
 # class UserList(generics.ListCreateAPIView):
 #     model = User

@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -187,6 +189,35 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'профиль'
         verbose_name_plural = 'профили'
+
+
+
+class Notification(models.Model):
+    CONFIRMED = 0
+    REQUESTED = 1
+    REJECTED = 2
+
+    DIAGNOSIS_STATUS_CHOICES = (
+        (CONFIRMED, 'Диагноз подтвержден'),
+        (REQUESTED, 'Запрос на подтверждение диагноза'),
+        (REJECTED, 'Диагноз отклонен'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь')
+    diagnosis = models.ForeignKey(Disease, on_delete=models.CASCADE, verbose_name='диагноз')
+    description = models.CharField(max_length=255, blank=True, verbose_name='описание')
+    status = models.IntegerField(blank=False, verbose_name='статус диагноза', choices=DIAGNOSIS_STATUS_CHOICES)
+    date_time = models.DateTimeField(auto_now=True)
+    is_readed = models.BooleanField(default=False, verbose_name='прочитано')
+
+    def __str__(self):
+        return self.diagnosis.name + ' ' + str(self.status)
+
+    class Meta:
+        verbose_name = "уведомление"
+        verbose_name_plural = "уведомления"
+
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
