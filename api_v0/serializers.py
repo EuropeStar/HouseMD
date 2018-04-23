@@ -22,8 +22,6 @@ class DiseaseSerializer(ModelSerializer):
 
     class Meta:
         model = Disease
-        fields = '__all__'
-
 
 class ContraindicationSerializer(ModelSerializer):
     class Meta:
@@ -72,7 +70,6 @@ class SideEffectSerializer(ModelSerializer):
     class Meta:
         model = SideEffect
         fields = '__all__'
-
 
 class AnalysisParamsSepializer(ModelSerializer):
     class Meta:

@@ -136,7 +136,3 @@ def calc_probability(doctor, sym: list = None, analysis: list = None, pk=1, pati
         examination.diseases.add(disease_prob)
     examination.save()
     print("ex dis ", Examination.objects.get(pk=1).diseases)
-
-
-if __name__ == "__main__":
-    pass

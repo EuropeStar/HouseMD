@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from api_v0.serializers import ProfileSerializer, ExaminationSerializer
 from core.helpers import send_email_with_security_code
 from core.models import *
+from core.helpers import send_email_with_security_code
 
 
 def sign_in(request):
@@ -19,41 +20,6 @@ def sign_in(request):
         return HttpResponseRedirect("/")
     else:
         return render(request, 'core/sign_in.html', {})
-
-
-def login_view(request):
-    username = request.POST['login']
-    password = request.POST['pass']
-    user = authenticate(username=username, password=password)
-    if not request.POST.get('remember-me'):
-        request.session.set_expiry(0)
-    if user is not None:
-        if user.is_active:
-            login(request, user)
-            if ('next' in request.GET):
-                return HttpResponseRedirect(request.GET['next'])
-            return HttpResponseRedirect("/")
-        else:
-            messages.add_message(request, messages.INFO, "аккаунт недоступен")
-            return HttpResponseRedirect(reverse('core:sign-in'))
-    else:
-        messages.add_message(request, messages.INFO, "некорректный логин или пароль")
-        return HttpResponseRedirect(reverse('core:sign-in'))
-
-
-@login_required(login_url='/sign-in')
-def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect(reverse("core:sign-in"))
-
-
-def forgot_password(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        send_email_with_security_code(email)
-        logout(request)
-        return HttpResponseRedirect(reverse('core:forgot-password'))
-
 
 def insert_to_database(request):
     filename = r"C:\Users\vladi\PycharmProjects\cybermedics\HouseMD\symptoms-id.txt"
