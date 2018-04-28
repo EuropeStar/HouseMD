@@ -5,6 +5,33 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+class AnalysisConstants(models.Model):
+    name = models.CharField(max_length=50, verbose_name="параметр анализа", unique=True)
+    lower_bound = models.DecimalField(verbose_name="нижняя граница", max_digits=10, decimal_places=4)
+    upper_bound = models.DecimalField(verbose_name="верхняя граница", max_digits=10, decimal_places=4)
+
+    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "критическое значения анализа"
+        verbose_name_plural = "критические значения анализов"
+
+
+class AnalysisParams(models.Model):
+    name = models.ForeignKey(to=AnalysisConstants, related_name="analyses_set", verbose_name="параметр анализа",
+                             on_delete=models.CASCADE)
+    value = models.DecimalField(verbose_name="значение", max_digits=10, decimal_places=4)
+    deviation = models.DecimalField(verbose_name="отклонение", max_digits=2, decimal_places=2)
+    result = models.BooleanField(default=False, verbose_name="результат")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "параметр анализа"
+        verbose_name_plural = "параметры анализа"
 
 class AnalysisConstants(models.Model):
     name = models.CharField(max_length=50, verbose_name="параметр анализа", unique=True)
@@ -108,6 +135,16 @@ class Disease(models.Model):
         verbose_name = "заболевание"
         verbose_name_plural = "заболевания"
 
+class DiseaseProbability(models.Model):
+    disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
+    prob = models.DecimalField(verbose_name="вероятность", max_digits=2, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.disease.name + " " + str(self.prob)
+
+    class Meta:
+        verbose_name = "вероятность заболевания"
+        verbose_name_plural = "вероятности заболеваний"
 
 class DiseaseProbability(models.Model):
     disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
@@ -165,6 +202,7 @@ class Examination(models.Model):
     diseases = models.ManyToManyField(to=DiseaseProbability, related_name="examinations", verbose_name='заболевания')
     meds = models.ManyToManyField(to=Med, related_name="examinations", verbose_name='лечащие препараты')
     date_time = models.DateTimeField(auto_now=True)
+    analysis = models.ManyToManyField(to=AnalysisParams, verbose_name="анализы", related_name="examinations")
 
     #
     analysis = models.ManyToManyField(to=AnalysisParams, verbose_name="анализы", related_name="examinations")

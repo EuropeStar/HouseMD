@@ -54,7 +54,6 @@ def prepare_dis_vector(diseases_array, symptoms_array):
 
     return normalize(dis)
 
-
 def calc_symptoms_diseases_matrix(diseases_array, symptoms_array):
     p_symptoms_diseases = []
     for i in range(len(diseases_array)):
@@ -71,7 +70,6 @@ def calc_symptoms_diseases_matrix(diseases_array, symptoms_array):
     print(p_symptoms_diseases)
     return p_symptoms_diseases
 
-
 def calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sym, p_symptoms_diseases):
     p_symptoms_not_diseases = [[0] * len(symptoms_array) for i in range(len(diseases_array))]
     for i in range(len(dis)):
@@ -84,7 +82,6 @@ def calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sy
             p_symptoms_not_diseases[i][j] = summ / (len(dis) - 1)
     print(p_symptoms_not_diseases)
     return p_symptoms_not_diseases
-
 
 def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
     """
@@ -115,7 +112,6 @@ def calc_probability(doctor, sym: list = None, analysis: list = None, pk=1, pati
         'боль в грудной клетке: сжимающие или жгучие, возникающие на пике физической или эмоциональной нагрузки, возникшие впервые или более сильные и/или продолжительные, чем обычно',
         # 'боль в грудной клетке: сжимающие или жгучие,но нестерпимо сильные, не проходящие часами'
     ]
-
     symptoms_array = Symptom.objects.filter(name__in=sym)
     examination.symptoms.add(*symptoms_array)
     diseases_array = Disease.objects.filter(symptoms__in=symptoms_array).order_by("name")
@@ -137,6 +133,3 @@ def calc_probability(doctor, sym: list = None, analysis: list = None, pk=1, pati
     examination.save()
     print("ex dis ", Examination.objects.get(pk=1).diseases)
 
-
-if __name__ == "__main__":
-    pass
