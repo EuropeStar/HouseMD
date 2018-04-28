@@ -23,5 +23,5 @@ router.register(r'examinations', ExaminationViewSet)
 
 urlpatterns = [
     url('^', include(router.urls)),
-    url('^api_auth', include('rest_framework.urls', namespace='rest_framework'))
+    url('^api_auth', include('rest_framework.urls', namespace='rest_framework')),
 ]

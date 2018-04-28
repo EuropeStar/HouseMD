@@ -3,6 +3,14 @@ from django.contrib import admin
 from core.models import *
 
 
+# class Inline(admin.StackedInline):
+#     model = AnalysisConstants
+#     extra = 3
+#
+# class DiseaseAdmin(admin.ModelAdmin):
+#     inlines = [ChoiceInline]
+
+
 admin.site.register(Profile)
 admin.site.register(Disease)
 admin.site.register(Symptom)

@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -31,6 +33,36 @@ class AnalysisParams(models.Model):
         verbose_name = "параметр анализа"
         verbose_name_plural = "параметры анализа"
 
+class AnalysisConstants(models.Model):
+    name = models.CharField(max_length=50, verbose_name="параметр анализа", unique=True)
+    lower_bound = models.DecimalField(verbose_name="нижняя граница", max_digits=10, decimal_places=4)
+    upper_bound = models.DecimalField(verbose_name="верхняя граница", max_digits=10, decimal_places=4)
+
+    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "критическое значения анализа"
+        verbose_name_plural = "критические значения анализов"
+
+
+class AnalysisParams(models.Model):
+    name = models.ForeignKey(to=AnalysisConstants, related_name="analyses_set", verbose_name="параметр анализа",
+                             on_delete=models.CASCADE)
+    value = models.DecimalField(verbose_name="значение", max_digits=10, decimal_places=4)
+    deviation = models.DecimalField(verbose_name="отклонение", max_digits=2, decimal_places=2)
+    result = models.BooleanField(default=False, verbose_name="результат")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "параметр анализа"
+        verbose_name_plural = "параметры анализа"
+
+
+#
 class ActiveSubstance(models.Model):
     name = models.CharField(max_length=100, verbose_name="название")
 
@@ -42,6 +74,7 @@ class ActiveSubstance(models.Model):
         verbose_name_plural = "активные вещества"
 
 
+#
 class SideEffect(models.Model):
     name = models.CharField(max_length=100, verbose_name="название")
     description = models.TextField(verbose_name="описание", blank=True)
@@ -63,6 +96,7 @@ class Med(models.Model):
     category = models.CharField(max_length=100, blank=True, verbose_name="класс принадлежности")
     default_dose = models.CharField(max_length=100, blank=True, verbose_name="способ применения и дозы")
     efficiency_class = models.IntegerField(null=True, blank=True, verbose_name="класс эффективности")
+    #
     activeSubstances = models.ManyToManyField(ActiveSubstance, related_name='meds', verbose_name='активные вещества')
     side_effects = models.ManyToManyField(SideEffect, related_name='meds', verbose_name='побочные эффекты')
 
@@ -77,6 +111,7 @@ class Med(models.Model):
 class Symptom(models.Model):
     name = models.CharField(max_length=255, verbose_name='название')
 
+    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
     def __str__(self):
         return self.name
 
@@ -92,12 +127,24 @@ class Disease(models.Model):
     symptoms = models.ManyToManyField(to=Symptom, related_name='diseases', verbose_name='симптомы')
     analysis = models.ManyToManyField(to=AnalysisParams, related_name="diseases", verbose_name="анализы", )
 
+    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = "заболевание"
         verbose_name_plural = "заболевания"
+
+class DiseaseProbability(models.Model):
+    disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
+    prob = models.DecimalField(verbose_name="вероятность", max_digits=2, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.disease.name + " " + str(self.prob)
+
+    class Meta:
+        verbose_name = "вероятность заболевания"
+        verbose_name_plural = "вероятности заболеваний"
 
 class DiseaseProbability(models.Model):
     disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
@@ -120,51 +167,16 @@ class Contraindication(models.Model):
         verbose_name = "противопоказание"
         verbose_name_plural = "противопоказания"
 
-
-class SpringSymptDisease(models.Model):
-    disease = models.ManyToManyField(Disease, related_name='spring_sympt_disease')
-    symptom = models.ManyToManyField(Symptom, related_name='spring_sympt_disease')
-    counter = models.IntegerField(default=0)
-
-    # class Meta:
-    #     unique_together = ('disease', 'symptom')
-
-
-class WinterSymptDisease(models.Model):
-    disease = models.ManyToManyField(Disease, related_name='winter_sympt_disease')
-    symptom = models.ManyToManyField(Symptom, related_name='winter_sympt_disease')
-    counter = models.IntegerField(default=0)
-
-    # class Meta:
-    #     unique_together = ('disease', 'symptom')
-
-
-class SummerSymptDisease(models.Model):
-    disease = models.ManyToManyField(Disease, related_name='summer_sympt_disease')
-    symptom = models.ManyToManyField(Symptom, related_name='summer_sympt_disease')
-    counter = models.IntegerField(default=0)
-
-    # class Meta:
-    #     unique_together = ('disease', 'symptom')
-
-
-class AutumnSymptDisease(models.Model):
-    disease = models.ManyToManyField(Disease, related_name='autumn_sympt_disease')
-    symptom = models.ManyToManyField(Symptom, related_name='autumn_sympt_disease')
-    counter = models.IntegerField(default=0)
-
-    # class Meta:
-    #     unique_together = ('disease', 'symptom')
-
 class Specialization(models.Model):
     SPEC_CHOICES = (
-        ('0', 'therapist'),
-        ('1', 'neurologist'),
-        ('2', 'ophthalmologist'),
-        ('3', 'surgeon'),
-        ('4', 'cardiologist'),
+        ('0', 'терапевт'),
+        ('1', 'невролог'),
+        ('2', 'офтальмолог'),
+        ('3', 'хирург'),
+        ('4', 'кардиолог'),
     )
     spec_type = models.CharField(max_length=2, choices=SPEC_CHOICES)
+
     def __str__(self):
         return self.spec_type
 
@@ -192,6 +204,9 @@ class Examination(models.Model):
     date_time = models.DateTimeField(auto_now=True)
     analysis = models.ManyToManyField(to=AnalysisParams, verbose_name="анализы", related_name="examinations")
 
+    #
+    analysis = models.ManyToManyField(to=AnalysisParams, verbose_name="анализы", related_name="examinations")
+
     def __str__(self):
         return self.patient + str(self.date_time)
 
@@ -212,6 +227,35 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'профиль'
         verbose_name_plural = 'профили'
+
+
+
+class Notification(models.Model):
+    CONFIRMED = 0
+    REQUESTED = 1
+    REJECTED = 2
+
+    DIAGNOSIS_STATUS_CHOICES = (
+        (CONFIRMED, 'Диагноз подтвержден'),
+        (REQUESTED, 'Запрос на подтверждение диагноза'),
+        (REJECTED, 'Диагноз отклонен'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь')
+    diagnosis = models.ForeignKey(Disease, on_delete=models.CASCADE, verbose_name='диагноз')
+    description = models.CharField(max_length=255, blank=True, verbose_name='описание')
+    status = models.IntegerField(blank=False, verbose_name='статус диагноза', choices=DIAGNOSIS_STATUS_CHOICES)
+    date_time = models.DateTimeField(auto_now=True)
+    is_readed = models.BooleanField(default=False, verbose_name='прочитано')
+
+    def __str__(self):
+        return self.diagnosis.name + ' ' + str(self.status)
+
+    class Meta:
+        verbose_name = "уведомление"
+        verbose_name_plural = "уведомления"
+
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

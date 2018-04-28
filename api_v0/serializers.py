@@ -22,6 +22,7 @@ class DiseaseSerializer(ModelSerializer):
 
     class Meta:
         model = Disease
+        fields = '__all__'
 
 class ContraindicationSerializer(ModelSerializer):
     class Meta:
@@ -59,6 +60,22 @@ class ProfileSerializer(ModelSerializer):
         user = User.objects.create_user(id=attrs.get('user.id'))
         return Profile(user=user)
 
+    class Meta:
+        model = Profile
+        fields = ("id", "organisation", "specialization", "is_chief", "email", "first_name",
+                  "last_name", "username",)
+
+    def restore_object(self, attrs, instance=None):
+        if instance is not None:
+            instance.user.email = attrs.get('user.email', instance.user.email)
+            instance.user.first_name = attrs.get('user.first_name', instance.user.first_name)
+            instance.user.last_name = attrs.get('user.last_name', instance.user.last_name)
+            instance.user.username = attrs.get('user.username', instance.user.username)
+            # instance.user.id = attrs.get('user.id', instance.user.id)
+            return instance
+
+        user = User.objects.create_user(id=attrs.get('user.id'))
+        return Profile(user=user)
 
 class ActiveSubstanceSerializer(ModelSerializer):
     class Meta:
@@ -93,4 +110,9 @@ class ExaminationSerializer(ModelSerializer):
 
     class Meta:
         model = Examination
+        fields = '__all__'
+
+class NotificationSerializer(ModelSerializer):
+    class Meta:
+        model = Notification
         fields = '__all__'
