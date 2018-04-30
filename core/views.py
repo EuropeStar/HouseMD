@@ -86,8 +86,9 @@ def notifications(request):
 @login_required(login_url='/sign-in')
 @api_view(['POST'])
 def save_examination(request, pk):
-    helpers.calc_probability(pk=pk, doctor=request.user,
-                             patient="", )  # sym=request.data["symptoms"], analysis=request.data["analysis"]
+    helpers.calc_probability(pk=pk, doctor=request.user, patient=request.data["patient"],
+                             sex=request.data["sex"], age=request.data["age"],
+                             sym=request.data["symptoms"], analysis=request.data["analysis"])
     examination = Examination.objects.get(pk=pk)
     serializer = ExaminationSerializer(examination)
     return Response(serializer.data)

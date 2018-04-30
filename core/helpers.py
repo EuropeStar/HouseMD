@@ -101,9 +101,15 @@ def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
     return dis
 
 
-def calc_probability(doctor, sym: list = None, analysis: list = None, pk=1, patient=""):
+def calc_probability(doctor, sex, age, sym: list = None, analysis: list = None, pk=1, patient=""):
+    patient_age = Examination.LESS_ZERO_AGE
+    for group in Examination.AGE_GROUP:
+        if age == group[1]:
+            patient_age = group[0]
+            break
     examination, created = Examination.objects.get_or_create(pk=pk, doctor=doctor, patient=patient,
-                                                             age=Examination.LESS_ZERO_AGE, sex=Examination.MALE)
+                                                             age=patient_age,
+                                                             sex=Examination.MALE if sex == "мужской" else Examination.FEMALE)
     examination.symptoms.clear()
     examination.diseases.all().delete()
     examination.diseases.clear()
