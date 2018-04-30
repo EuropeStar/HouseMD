@@ -19,4 +19,5 @@ admin.site.register(Specialization)
 admin.site.register(SideEffect)
 admin.site.register(ActiveSubstance)
 admin.site.register(Examination)
+admin.site.register(Notification)
 # Register your models here.

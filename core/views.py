@@ -4,15 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from api_v0.serializers import ProfileSerializer, NotificationSerializer, ExaminationSerializer
+from core import helpers
 from core.helpers import send_email_with_security_code
-
 from core.models import *
-
 
 
 def sign_in(request):
@@ -46,7 +44,6 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("core:sign-in"))
 
-  
 @login_required(login_url='/sign-in')
 @api_view(['GET'])
 def main(request):
@@ -85,6 +82,17 @@ def notifications(request):
     serializer = NotificationSerializer(notifs, many=True)
     return Response(serializer.data)
 
+
+@login_required(login_url='/sign-in')
+@api_view(['POST'])
+def save_examination(request, pk):
+    helpers.calc_probability(pk=pk, doctor=request.user,
+                             patient="", )  # sym=request.data["symptoms"], analysis=request.data["analysis"]
+    examination = Examination.objects.get(pk=pk)
+    serializer = ExaminationSerializer(examination)
+    return Response(serializer.data)
+
+
 def forgot_password(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -94,21 +102,21 @@ def forgot_password(request):
 
 
 def insert_to_database(request):
-    filename = r"C:\Users\vladi\PycharmProjects\cybermedics\HouseMD\symptoms-id.txt"
+    filename = ""
     file = open(filename, encoding="UTF-8")
     for line in file:
-        symptom = Symptom()
+        disease = Disease()
         pk, name = line.split(",", 1)
         print(pk, name.lower().strip())
-        symptom.pk = int(pk.strip())
-        symptom.name = name.lower().strip()
-        symptom.save()
+        disease.pk = int(pk.strip())
+        disease.name = name.lower().strip()
+        disease.save()
     print("--")
-    return HttpResponse("OK" + str(Symptom.objects.count()))
+    return HttpResponse("OK" + str(Disease.objects.count()))
 
 
 def insert_connections(request):
-    filename = r"C:\Users\vladi\PycharmProjects\cybermedics\HouseMD\disease-symptoms.txt"
+    filename = ""
     file = open(filename, encoding="UTF-8")
     for line in file:
         l = line.strip().replace("]", "").replace("[", "").replace("-", "").replace(" ", "")

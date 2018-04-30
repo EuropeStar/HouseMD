@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -61,16 +59,10 @@ class SideEffect(models.Model):
 
 
 class Med(models.Model):
-    DOSE = (
-        ()
-    )
     name = models.CharField(max_length=100, verbose_name="название")
     description = models.TextField(verbose_name="описание", blank=True)
     category = models.CharField(max_length=100, blank=True, verbose_name="класс принадлежности")
-    default_dose = models.CharField(max_length=100, blank=True, verbose_name="способ применения и дозы")
-    efficiency_class = models.IntegerField(null=True, blank=True, verbose_name="класс эффективности")
-    #
-    activeSubstances = models.ManyToManyField(ActiveSubstance, related_name='meds', verbose_name='активные вещества')
+    efficiency_class = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="класс эффективности")
     side_effects = models.ManyToManyField(SideEffect, related_name='meds', verbose_name='побочные эффекты')
 
     def __str__(self):
@@ -84,7 +76,6 @@ class Med(models.Model):
 class Symptom(models.Model):
     name = models.CharField(max_length=255, verbose_name='название')
 
-    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
     def __str__(self):
         return self.name
 
@@ -100,7 +91,6 @@ class Disease(models.Model):
     symptoms = models.ManyToManyField(to=Symptom, related_name='diseases', verbose_name='симптомы')
     analysis = models.ManyToManyField(to=AnalysisParams, related_name="diseases", verbose_name="анализы", )
 
-    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
     def __str__(self):
         return self.name
 
@@ -120,6 +110,7 @@ class DiseaseProbability(models.Model):
         verbose_name = "вероятность заболевания"
         verbose_name_plural = "вероятности заболеваний"
 
+
 class Contraindication(models.Model):
     name = models.ForeignKey(ActiveSubstance, related_name='contraindications', on_delete=models.CASCADE)
 
@@ -130,13 +121,19 @@ class Contraindication(models.Model):
         verbose_name = "противопоказание"
         verbose_name_plural = "противопоказания"
 
+
 class Specialization(models.Model):
+    THERAPIST = 0
+    NEUROLOGIST = 1
+    OPHTHALMOLOGIST = 2
+    SURGEON = 3
+    CARDIOLOGIST = 4
     SPEC_CHOICES = (
-        ('0', 'терапевт'),
-        ('1', 'невролог'),
-        ('2', 'офтальмолог'),
-        ('3', 'хирург'),
-        ('4', 'кардиолог'),
+        (THERAPIST, 'терапевт'),
+        (NEUROLOGIST, 'невролог'),
+        (OPHTHALMOLOGIST, 'офтальмолог'),
+        (SURGEON, 'хирург'),
+        (CARDIOLOGIST, 'кардиолог'),
     )
     spec_type = models.CharField(max_length=2, choices=SPEC_CHOICES)
 
@@ -147,26 +144,36 @@ class Specialization(models.Model):
         verbose_name = 'специальность'
         verbose_name_plural = 'специальности'
 
+
 class Examination(models.Model):
+    MALE = 0
+    FEMALE = 1
+
+    LESS_ZERO_AGE = 0
+    ZERO_ONE_AGE = 1
+    ONE_FIVE_AGE = 2
+    FIVE_EIGHTEEN_AGE = 3
+    EIGHTEEN_SIXTY_AGE = 4
+    MORE_SIXTY_AGE = 5
     AGE_GROUP = (
-        ('0', '0'),
-        ('1', '< 1 года'),
-        ('2', '1 - 5 лет'),
-        ('3', '5 - 18 лет'),
-        ('4', '18 - 60 лет'),
-        ('5', '> 60 лет'),
+        (LESS_ZERO_AGE, '0'),
+        (ZERO_ONE_AGE, '< 1 года'),
+        (ONE_FIVE_AGE, '1 - 5 лет'),
+        (FIVE_EIGHTEEN_AGE, '5 - 18 лет'),
+        (EIGHTEEN_SIXTY_AGE, '18 - 60 лет'),
+        (MORE_SIXTY_AGE, '> 60 лет'),
     )
     doctor = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='врач')
     patient = models.CharField(max_length=50, verbose_name='ФИО пациента')
     age = models.CharField(max_length=1, blank=True, verbose_name='возраст', choices=AGE_GROUP)
-    sex = models.CharField(max_length=1, choices= (('0', 'мужской'),('1', 'женский')), blank=True, verbose_name='пол')
+    sex = models.CharField(max_length=1, choices=((MALE, 'мужской'), (FEMALE, 'женский')), blank=True,
+                           verbose_name='пол')
     symptoms = models.ManyToManyField(to=Symptom, related_name="examinations", verbose_name='симптомы')
-    contraindications = models.ManyToManyField(to=Contraindication, related_name="examinations", verbose_name='противопоказания')
+    contraindications = models.ManyToManyField(to=Contraindication, related_name="examinations",
+                                               verbose_name='противопоказания')
     diseases = models.ManyToManyField(to=DiseaseProbability, related_name="examinations", verbose_name='заболевания')
     meds = models.ManyToManyField(to=Med, related_name="examinations", verbose_name='лечащие препараты')
     date_time = models.DateTimeField(auto_now=True)
-
-    #
     analysis = models.ManyToManyField(to=AnalysisParams, verbose_name="анализы", related_name="examinations")
 
     def __str__(self):
@@ -176,11 +183,13 @@ class Examination(models.Model):
         verbose_name = 'обследование'
         verbose_name_plural = 'обследования'
 
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='пользователь')
     bio = models.CharField(max_length=50, blank=True)
     organisation = models.CharField(max_length=50, blank=False, verbose_name='место работы')
-    specialization = models.ManyToManyField(to=Specialization, related_name="specializations", verbose_name='специализации')
+    specialization = models.ManyToManyField(to=Specialization, related_name="specializations",
+                                            verbose_name='специализации')
     is_chief = models.BooleanField(default=False, verbose_name='должность главного врача')
 
     def __str__(self):
@@ -189,7 +198,6 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'профиль'
         verbose_name_plural = 'профили'
-
 
 
 class Notification(models.Model):
@@ -218,7 +226,6 @@ class Notification(models.Model):
         verbose_name_plural = "уведомления"
 
 
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -228,4 +235,3 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
-

@@ -1,22 +1,7 @@
 from rest_framework import viewsets, permissions
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
 
-from core import helpers
 from .serializers import *
 
-
-# Create your views here.
-
-# @api_view(['GET'])
-# def api_root(request, format=None):
-#     """
-#     The entry endpoint of our API.
-#     """
-#     return Response({
-#         'users': reverse('user-list', request=request),
-#         'groups': reverse('group-list', request=request),
-#     })
 
 class DiseasesViewSet(viewsets.ModelViewSet):
     queryset = Disease.objects.all()
@@ -62,37 +47,19 @@ class AnalysisParamsViewSet(viewsets.ModelViewSet):
     queryset = AnalysisParams.objects.all()
     serializer_class = AnalysisParamsSepializer
 
+
 class ExaminationViewSet(viewsets.ModelViewSet):
-    # authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
     queryset = Examination.objects.all()
     serializer_class = ExaminationSerializer
 
+    # def retrieve(self, request, pk=None, *args, **kwargs):
+    #     queryset = Examination.objects.all()
+    #     ex = get_object_or_404(queryset, pk=pk)
+    #     serializer = ExaminationSerializer(ex)
+    #     return Response(serializer.data)
+
+
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        helpers.calc_probability(pk=pk, doctor=request.user, patient="")
-        queryset = Examination.objects.all()
-        ex = get_object_or_404(queryset, pk=pk)
-        serializer = ExaminationSerializer(ex)
-        return Response(serializer.data)
-
-
-# class UserList(generics.ListCreateAPIView):
-#     model = User
-#     serializer_class = UserSerializer
-#
-# class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-#     model = User
-#     serializer_class = UserSerializer
-#
-#
-# class DiseasesList(generics.ListCreateAPIView):
-#     model = Disease
-#     serializer_class = DiseaseSerializer
-#
-# class DiseasesDetail(generics.RetrieveUpdateDestroyAPIView):
-#     model = Disease
-#     serializer_class = DiseaseSerializer
