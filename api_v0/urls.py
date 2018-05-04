@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.urls import include
 from rest_framework.routers import DefaultRouter
-
+from rest_framework_jwt.views import obtain_jwt_token
 from .views import *
 
 router = DefaultRouter()
@@ -24,4 +24,5 @@ router.register(r'notifications', NotificationViewSet)
 urlpatterns = [
     url('^', include(router.urls)),
     url('^api_auth', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'api_obtain_token', obtain_jwt_token)
 ]
