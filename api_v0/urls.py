@@ -24,5 +24,6 @@ router.register(r'notifications', NotificationViewSet)
 urlpatterns = [
     url('^', include(router.urls)),
     url('^api_auth', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'api_obtain_token', obtain_jwt_token)
+    url(r'api_obtain_token', obtain_jwt_token),
+    url(r'get_user_info', get_user_info)
 ]
