@@ -1,7 +1,8 @@
 from rest_framework import viewsets, permissions
-
+from rest_framework.response import Response
 from .serializers import *
-
+from rest_framework.decorators import api_view
+from rest_framework.serializers import ModelSerializer
 
 class DiseasesViewSet(viewsets.ModelViewSet):
     queryset = Disease.objects.all()
@@ -63,3 +64,14 @@ class ExaminationViewSet(viewsets.ModelViewSet):
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
+
+
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
+@api_view(['GET'])
+def get_user_info(request):
+	return Response(UserSerializer(request.user).data)
