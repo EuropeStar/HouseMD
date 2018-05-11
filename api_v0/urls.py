@@ -1,7 +1,7 @@
 from django.conf.urls import url
-from django.urls import include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from .views import *
 
 router = DefaultRouter()
@@ -25,5 +25,11 @@ urlpatterns = [
     url('^', include(router.urls)),
     url('^api_auth', include('rest_framework.urls', namespace='rest_framework')),
     url(r'api_obtain_token', obtain_jwt_token),
-    url(r'get_user_info', get_user_info)
+    url(r'api_refresh_token', refresh_jwt_token),
+    url(r'get_user_info', get_user_info),
+    path('dashboard', main, name='main'),
+    path('profile', profile, name='profile'),
+    path('notifications', notifications, name='notifications'),
+    path('save-examination/<int:pk>', save_examination, name='save-examination'),
+
 ]

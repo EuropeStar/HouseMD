@@ -1,8 +1,11 @@
 from rest_framework import viewsets, permissions
-from rest_framework.response import Response
 from .serializers import *
+from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view
-from rest_framework.serializers import ModelSerializer
+from rest_framework.response import Response
+from core import helpers
+from core.models import *
+
 
 class DiseasesViewSet(viewsets.ModelViewSet):
     queryset = Disease.objects.all()
@@ -54,24 +57,62 @@ class ExaminationViewSet(viewsets.ModelViewSet):
     queryset = Examination.objects.all()
     serializer_class = ExaminationSerializer
 
-    # def retrieve(self, request, pk=None, *args, **kwargs):
-    #     queryset = Examination.objects.all()
-    #     ex = get_object_or_404(queryset, pk=pk)
-    #     serializer = ExaminationSerializer(ex)
-    #     return Response(serializer.data)
+    def filter_queryset(self, queryset):
+        return queryset.filter(doctor=self.request.user)
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
 
-
-class UserSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username']
-
+    def filter_queryset(self, queryset):
+        return queryset.filter(user=self.request.user)
 
 @api_view(['GET'])
 def get_user_info(request):
-	return Response(UserSerializer(request.user).data)
+    return Response(ProfileSerializer(data=request.user.profile).data)
+
+
+@api_view(['GET'])
+def main(request):
+    user = request.user
+    last_notifications = Notification.objects.filter(user=user).order_by('-date_time')[:2]
+    last_examinatinos = Examination.objects.filter(doctor=user).order_by('-date_time')[:2]
+    #notifications_amount = Notification.objects.filter(user=user).count()
+
+    notifs_serializer = NotificationSerializer(last_notifications, many=True)
+    notifs_data = notifs_serializer.data
+
+    exams_serializer = ExaminationSerializer(last_examinatinos, many=True)
+    exams_data = exams_serializer.data
+
+    data = {
+        'notifications': notifs_data,
+        'examinations': exams_data
+    }
+
+    return Response(data)
+
+@api_view(['GET'])
+def profile(request):
+    profile = Profile.objects.get(user=request.user)
+    serializer = ProfileSerializer(profile)
+    profile_data = serializer.data
+    return Response(profile_data)
+
+@api_view(['GET'])
+def notifications(request):
+    user = request.user
+    notifs = Notification.objects.filter(user=user)
+    serializer = NotificationSerializer(notifs, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def save_examination(request, pk):
+    helpers.calc_probability(pk=pk, doctor=request.user, patient=request.data["patient"],
+                             sex=request.data["sex"], age=request.data["age"],
+                             sym=request.data["symptoms"], analysis=request.data["analysis"])
+    examination = Examination.objects.get(pk=pk)
+    serializer = ExaminationSerializer(examination)
+    return Response(serializer.data)
