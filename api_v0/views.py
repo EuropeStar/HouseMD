@@ -93,12 +93,24 @@ def main(request):
 
     return Response(data)
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def profile(request):
-    profile = Profile.objects.get(user=request.user)
-    serializer = ProfileSerializer(profile)
-    profile_data = serializer.data
-    return Response(profile_data)
+    if request.method == 'GET':
+        profile = Profile.objects.get(user=request.user)
+        serializer = ProfileSerializer(profile)
+        profile_data = serializer.data
+        return Response(profile_data)
+    elif request.method == 'POST':
+        _type = request.data['type']
+        if _type == 'private':
+            if request.data['first_name'] and request.data['last_name']:
+                request.user.first_name = request.data['first_name']
+                request.user.last_name = request.data['last_name']
+                request.user.save()
+                return Response(status=200)
+            else:
+                return Response(status=400)
+
 
 @api_view(['GET'])
 def notifications(request):
