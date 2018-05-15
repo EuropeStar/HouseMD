@@ -6,10 +6,10 @@ from django.dispatch import receiver
 
 class AnalysisConstants(models.Model):
     name = models.CharField(max_length=50, verbose_name="параметр анализа", unique=True)
-    lower_bound = models.DecimalField(verbose_name="нижняя граница", max_digits=10, decimal_places=4)
-    upper_bound = models.DecimalField(verbose_name="верхняя граница", max_digits=10, decimal_places=4)
+    lower_bound = models.DecimalField(verbose_name="нижняя граница", default=0.0, max_digits=25, decimal_places=4)
+    upper_bound = models.DecimalField(verbose_name="верхняя граница", max_digits=25, decimal_places=4)
+    dimension = models.CharField(max_length=10, null=True, verbose_name="размерность")
 
-    # counter = models.PositiveIntegerField(verbose_name="встречаемость", default=0)
     def __str__(self):
         return self.name
 
@@ -21,7 +21,7 @@ class AnalysisConstants(models.Model):
 class AnalysisParams(models.Model):
     name = models.ForeignKey(to=AnalysisConstants, related_name="analyses_set", verbose_name="параметр анализа",
                              on_delete=models.CASCADE)
-    value = models.DecimalField(verbose_name="значение", max_digits=10, decimal_places=4)
+    value = models.DecimalField(verbose_name="значение", max_digits=25, decimal_places=4)
     deviation = models.DecimalField(verbose_name="отклонение", max_digits=2, decimal_places=2)
     result = models.BooleanField(default=False, verbose_name="результат")
 
@@ -30,7 +30,7 @@ class AnalysisParams(models.Model):
 
     class Meta:
         verbose_name = "параметр анализа"
-        verbose_name_plural = "параметры анализа"
+        verbose_name_plural = "параметры анализа" 
 
 
 #
@@ -89,7 +89,8 @@ class Disease(models.Model):
     description = models.TextField(verbose_name='описание', blank=True)
     meds = models.ManyToManyField(to=Med, related_name='diseases', verbose_name='используемые препараты')
     symptoms = models.ManyToManyField(to=Symptom, related_name='diseases', verbose_name='симптомы')
-    analysis = models.ManyToManyField(to=AnalysisParams, related_name="diseases", verbose_name="анализы", )
+    analysis_constants = models.ManyToManyField(to=AnalysisConstants, related_name="diseases", verbose_name="анализы",
+                                                through="DiseaseAnalysis")
 
     def __str__(self):
         return self.name
@@ -97,6 +98,13 @@ class Disease(models.Model):
     class Meta:
         verbose_name = "заболевание"
         verbose_name_plural = "заболевания"
+
+
+class DiseaseAnalysis(models.Model):
+    disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
+    analysis = models.ForeignKey(to=AnalysisConstants, verbose_name="анализ", on_delete=models.CASCADE)
+    sign = models.CharField(max_length=2, verbose_name='знак отклонения',
+                            choices=(('<', '<'), ('>', '>'), ('<>', '<>')), default='<>')
 
 
 class DiseaseProbability(models.Model):
