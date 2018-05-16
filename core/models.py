@@ -22,7 +22,7 @@ class AnalysisParams(models.Model):
     name = models.ForeignKey(to=AnalysisConstants, related_name="analyses_set", verbose_name="параметр анализа",
                              on_delete=models.CASCADE)
     value = models.DecimalField(verbose_name="значение", max_digits=25, decimal_places=4)
-    deviation = models.DecimalField(verbose_name="отклонение", max_digits=2, decimal_places=2)
+    deviation = models.DecimalField(verbose_name="отклонение", max_digits=10, decimal_places=2)
     result = models.BooleanField(default=False, verbose_name="результат")
 
     def __str__(self):
@@ -109,7 +109,7 @@ class DiseaseAnalysis(models.Model):
 
 class DiseaseProbability(models.Model):
     disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
-    prob = models.DecimalField(verbose_name="вероятность", max_digits=2, decimal_places=2, default=0)
+    prob = models.DecimalField(verbose_name="вероятность", max_digits=3, decimal_places=2, default=0)
 
     def __str__(self):
         return self.disease.name + " " + str(self.prob)

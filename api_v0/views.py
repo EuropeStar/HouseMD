@@ -1,10 +1,10 @@
 from rest_framework import viewsets, permissions
-from .serializers import *
-from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
 from core import helpers
 from core.models import *
+from .serializers import *
 
 
 class DiseasesViewSet(viewsets.ModelViewSet):
@@ -121,10 +121,10 @@ def notifications(request):
 
 
 @api_view(['POST'])
-def save_examination(request, pk):
-    helpers.calc_probability(pk=pk, doctor=request.user, patient=request.data["patient"],
-                             sex=request.data["sex"], age=request.data["age"],
-                             sym=request.data["symptoms"], analysis=request.data["analysis"])
-    examination = Examination.objects.get(pk=pk)
+def save_examination(request, pk=None):
+    new_pk = helpers.calc_probability(doctor=request.user, patient=request.data["patient"],
+                                      sex=request.data["sex"], age=request.data["age"],
+                                      sym=request.data["symptoms"], analysis=request.data["analysis"], pk=pk)
+    examination = Examination.objects.get(pk=new_pk)
     serializer = ExaminationSerializer(examination)
     return Response(serializer.data)

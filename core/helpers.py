@@ -33,9 +33,12 @@ def send_email_with_security_code(toaddr):
 
 def normalize(diseases: list):
     summ = sum([d[1] for d in diseases])
+
     for d in diseases:
         if summ != 0:
             d[1] = d[1] * (1 / summ)
+        else:
+            d[1] = 1 / len(diseases)
     return diseases
 
 
@@ -54,6 +57,7 @@ def prepare_dis_vector(diseases_array, symptoms_array):
 
     return normalize(dis)
 
+
 def calc_symptoms_diseases_matrix(diseases_array, symptoms_array):
     p_symptoms_diseases = []
     for i in range(len(diseases_array)):
@@ -70,6 +74,7 @@ def calc_symptoms_diseases_matrix(diseases_array, symptoms_array):
     print(p_symptoms_diseases)
     return p_symptoms_diseases
 
+
 def calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sym, p_symptoms_diseases):
     p_symptoms_not_diseases = [[0] * len(symptoms_array) for i in range(len(diseases_array))]
     for i in range(len(dis)):
@@ -78,10 +83,13 @@ def calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sy
             for k in range(len(dis)):
                 if k != i:
                     summ += p_symptoms_diseases[k][j]
-
-            p_symptoms_not_diseases[i][j] = summ / (len(dis) - 1)
+            try:
+                p_symptoms_not_diseases[i][j] = summ / (len(dis) - 1)
+            except  ZeroDivisionError:
+                p_symptoms_not_diseases[i][j] = summ
     print(p_symptoms_not_diseases)
     return p_symptoms_not_diseases
+
 
 def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
     """
@@ -101,20 +109,24 @@ def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
     return dis
 
 
-def calc_probability(doctor, sex, age, sym: list = None, analysis: list = None, pk=1, patient=""):
-    patient_age = Examination.LESS_ZERO_AGE
-    for group in Examination.AGE_GROUP:
-        if age == group[1]:
-            patient_age = group[0]
-            break
-    examination, created = Examination.objects.get_or_create(pk=pk, doctor=doctor, patient=patient,
-                                                             age=patient_age,
-                                                             sex=Examination.MALE if sex == "мужской" else Examination.FEMALE)
+def calc_probability(doctor, sex, age, sym: list = None, analysis: list = None, patient="", pk=None):
+    if pk:
+        examination = Examination.objects.get(pk=pk)
+        examination.doctor = doctor
+        examination.patient = patient
+        examination.sex = sex
+        examination.age = age
+    else:
+        examination = Examination(doctor=doctor, patient=patient,
+                                  age=age,
+                                  sex=sex)
+    examination.save()
     examination.symptoms.clear()
     examination.diseases.all().delete()
     examination.diseases.clear()
-
-    symptoms_array = Symptom.objects.filter(name__in=sym)
+    sym = list(filter(lambda elem: elem != '', sym))
+    print(sym)
+    symptoms_array = Symptom.objects.filter(id__in=sym)
     examination.symptoms.add(*symptoms_array)
     diseases_array = Disease.objects.filter(symptoms__in=symptoms_array).order_by("name")
     # .filter(len(F("symptoms")) > int(len(sym) * 0.75))
@@ -127,9 +139,11 @@ def calc_probability(doctor, sex, age, sym: list = None, analysis: list = None, 
     p_symptoms_not_diseases = calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sym,
                                                                    p_symptoms_diseases)
     dis = bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases)
-
+    dis = normalize(dis)
     for i in range(len(dis)):
         disease_prob = DiseaseProbability(disease=diseases_array[i], prob=round(dis[i][1], 2))
+        print(round(dis[i][1], 2))
         disease_prob.save()
         examination.diseases.add(disease_prob)
     examination.save()
+    return examination.pk
