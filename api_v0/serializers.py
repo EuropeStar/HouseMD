@@ -102,3 +102,9 @@ class NotificationSerializer(ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+
+
+class AnalysisConstantSerializer(ModelSerializer):
+    class Meta:
+        model = AnalysisConstants
+        fields = '__all__'

@@ -128,3 +128,13 @@ def save_examination(request, pk=None):
     examination = Examination.objects.get(pk=new_pk)
     serializer = ExaminationSerializer(examination)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+def request_research_meta(request):
+    symptoms = SymptomSerializer(Symptom.objects.all(), many=True)
+    analysis = AnalysisConstantSerializer(AnalysisConstants.objects.all(), many=True)
+    return Response(data={
+        'symptoms': symptoms.data,
+        'analysis': analysis.data
+    })

@@ -31,5 +31,5 @@ urlpatterns = [
     path('notifications', notifications, name='notifications'),
     path('save-examination', save_examination, name='save-examination'),
     path('save-examination/<int:pk>', save_examination, name='save-examination'),
-
+    path('research_meta', request_research_meta, name='research_meta')
 ]
