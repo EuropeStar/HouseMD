@@ -3,7 +3,8 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from core.models import Symptom, Disease, Examination, DiseaseProbability
+from core.models import Symptom, Disease, Examination, DiseaseProbability, AnalysisParams, AnalysisConstants, \
+    DiseaseAnalysis
 
 # from core.models import Disease, Symptom
 
@@ -109,7 +110,7 @@ def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
     return dis
 
 
-def calc_probability(doctor, sex, age, sym: list = None, analysis: list = None, patient="", pk=None):
+def calc_probability(doctor, sex, age, sym: list = [], analysis: list = [], patient="", pk=None):
     if pk:
         examination = Examination.objects.get(pk=pk)
         examination.doctor = doctor
@@ -140,10 +141,31 @@ def calc_probability(doctor, sex, age, sym: list = None, analysis: list = None, 
                                                                    p_symptoms_diseases)
     dis = bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases)
     dis = normalize(dis)
+
+    for an in analysis:
+        analysis_template = AnalysisConstants.objects.get(id=an["id"])
+        scope = analysis_template.upper_bound = analysis_template.lower_bound
+        if analysis_template.lower_bound <= an["value"] <= analysis_template.upper_bound:
+            deviation = 0
+        elif an["value"] <= analysis_template.upper_bound:
+            deviation = - (analysis_template.lower_bound - an["value"]) / scope
+        else:
+            deviation = (analysis_template.upper_bound - an["value"]) / scope
+        analysis_record = AnalysisParams(name=analysis_template, value=an["value"], deviation=deviation,
+                                         result=deviation != 0)
+        analysis_record.save()
+
+        examination.analysis.add(analysis_record)
+
     for i in range(len(dis)):
         disease_prob = DiseaseProbability(disease=diseases_array[i], prob=round(dis[i][1], 2))
-        print(round(dis[i][1], 2))
+        for an in examination.analysis.all().filter(result=True):
+            sign = DiseaseAnalysis.objects.get(disease=diseases_array[i], analysis=an).sign
+            if ((an.deviation > 0 and sign in (">", "<>")) or
+                    (an.deviation < 0 and sign in ("<", "<>"))):
+                disease_prob.analysis_result.add(an)
         disease_prob.save()
         examination.diseases.add(disease_prob)
+
     examination.save()
     return examination.pk

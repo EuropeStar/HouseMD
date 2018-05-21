@@ -30,10 +30,12 @@ class AnalysisParams(models.Model):
 
     class Meta:
         verbose_name = "параметр анализа"
-        verbose_name_plural = "параметры анализа" 
+        verbose_name_plural = "параметры анализа"
 
 
-#
+        #
+
+
 class ActiveSubstance(models.Model):
     name = models.CharField(max_length=100, verbose_name="название")
 
@@ -110,6 +112,8 @@ class DiseaseAnalysis(models.Model):
 class DiseaseProbability(models.Model):
     disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
     prob = models.DecimalField(verbose_name="вероятность", max_digits=3, decimal_places=2, default=0)
+    analysis_result = models.ManyToManyField(to=AnalysisParams, related_name="diseases_prob",
+                                             verbose_name="выявленные отклонения в анализах")
 
     def __str__(self):
         return self.disease.name + " " + str(self.prob)
