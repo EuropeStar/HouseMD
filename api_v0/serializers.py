@@ -73,7 +73,13 @@ class SideEffectSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class AnalysisConstantSerializer(ModelSerializer):
+    class Meta:
+        model = AnalysisConstants
+        fields = '__all__'
+
 class AnalysisParamsSepializer(ModelSerializer):
+    name = AnalysisConstantSerializer(many=False)
     class Meta:
         model = AnalysisParams
         fields = '__all__'
@@ -81,7 +87,7 @@ class AnalysisParamsSepializer(ModelSerializer):
 
 class DiseaseProbabilitySerializer(ModelSerializer):
     disease = DiseaseSerializer(many=False)
-
+    analysis_result = AnalysisParamsSepializer(many=True)
     class Meta:
         model = DiseaseProbability
         fields = '__all__'
@@ -103,8 +109,3 @@ class NotificationSerializer(ModelSerializer):
         model = Notification
         fields = '__all__'
 
-
-class AnalysisConstantSerializer(ModelSerializer):
-    class Meta:
-        model = AnalysisConstants
-        fields = '__all__'
