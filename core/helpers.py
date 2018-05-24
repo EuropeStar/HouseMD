@@ -184,14 +184,15 @@ def calc_probability(doctor, sex, age, patient: str, sym: list = [], analysis: l
 
     for an in analysis:
         analysis_template = AnalysisConstants.objects.get(id=an["id"])
-        scope = analysis_template.upper_bound = analysis_template.lower_bound
-        if analysis_template.lower_bound <= an["value"] <= analysis_template.upper_bound:
+        scope = float(analysis_template.upper_bound - analysis_template.lower_bound)
+        value = float(an["value"])
+        if analysis_template.lower_bound <= value <= analysis_template.upper_bound:
             deviation = 0
-        elif an["value"] <= analysis_template.upper_bound:
-            deviation = - (analysis_template.lower_bound - an["value"]) / scope
+        elif value <= analysis_template.upper_bound:
+            deviation = - (float(analysis_template.lower_bound) - value) / scope
         else:
-            deviation = (analysis_template.upper_bound - an["value"]) / scope
-        analysis_record = AnalysisParams(name=analysis_template, value=an["value"], deviation=deviation,
+            deviation = (float(analysis_template.upper_bound) - value) / scope
+        analysis_record = AnalysisParams(name=analysis_template, value=value, deviation=deviation,
                                          result=deviation != 0)
         analysis_record.save()
 
@@ -200,7 +201,10 @@ def calc_probability(doctor, sex, age, patient: str, sym: list = [], analysis: l
     for i in range(len(dis)):
         disease_prob = DiseaseProbability(disease=diseases_array[i], prob=round(dis[i][1], 2))
         for an in examination.analysis.all().filter(result=True):
-            sign = DiseaseAnalysis.objects.get(disease=diseases_array[i], analysis=an).sign
+            dis_an = DiseaseAnalysis.objects.get(disease=diseases_array[i], analysis=an)
+            if dis_an == None:
+                continue
+            sign = dis_an.sign
             if ((an.deviation > 0 and sign in (">", "<>")) or
                     (an.deviation < 0 and sign in ("<", "<>"))):
                 disease_prob.analysis_result.add(an)
