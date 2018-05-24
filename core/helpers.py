@@ -3,6 +3,11 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import numpy as np
+import pandas as pd
+from sklearn import metrics
+from sklearn.naive_bayes import BernoulliNB
+
 from core.models import Symptom, Disease, Examination, DiseaseProbability, AnalysisParams, AnalysisConstants, \
     DiseaseAnalysis
 
@@ -32,9 +37,13 @@ def send_email_with_security_code(toaddr):
     send_email(toaddr, message)
 
 
-def normalize(diseases: list):
+def normalize(diseases: list) -> list:
+    """    
+    This function normalized list with probability item
+    :param diseases: list of list, first item is disease`s name, second item is probability, third item is number of symptoms
+    :return: list with normalized probability item 
+    """
     summ = sum([d[1] for d in diseases])
-
     for d in diseases:
         if summ != 0:
             d[1] = d[1] * (1 / summ)
@@ -43,7 +52,13 @@ def normalize(diseases: list):
     return diseases
 
 
-def prepare_dis_vector(diseases_array, symptoms_array):
+def prepare_dis_vector(diseases_array: list, symptoms_array: list) -> list:
+    """
+    This function calculate list with probability item
+    :param diseases_array: list of Disease items
+    :param symptoms_array: list of Symptom items
+    :return: list with probability item
+    """
     dis = []
     for d in diseases_array:
         try:
@@ -54,12 +69,16 @@ def prepare_dis_vector(diseases_array, symptoms_array):
         dis.append([d.name, prob,
                     len(d.symptoms.intersection(symptoms_array)) / len(symptoms_array)])
 
-    # dis = list(filter(lambda x: x[2] > (len(symptoms_array) * 0.75), dis))
-
     return normalize(dis)
 
 
-def calc_symptoms_diseases_matrix(diseases_array, symptoms_array):
+def calc_symptoms_diseases_matrix(diseases_array: list, symptoms_array: list) -> list:
+    """
+    This function calculate inverted correlation matrix
+    :param diseases_array: list of Disease items
+    :param symptoms_array: list of Symptom items
+    :return: matrix of probabilities
+    """
     p_symptoms_diseases = []
     for i in range(len(diseases_array)):
         p_symptoms_diseases.append([])
@@ -72,11 +91,20 @@ def calc_symptoms_diseases_matrix(diseases_array, symptoms_array):
             except ZeroDivisionError:
                 prob = 0
             line.append(prob)
-    print(p_symptoms_diseases)
     return p_symptoms_diseases
 
 
-def calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sym, p_symptoms_diseases):
+def calc_invert_symptoms_diseases_matrix(diseases_array: list, symptoms_array: list,
+                                         dis: list, sym: list, p_symptoms_diseases: list) -> list:
+    """
+    This function calculate correlation matrix
+    :param diseases_array: list of Disease items
+    :param symptoms_array: list of Symptom items
+    :param dis: list of list, first item is disease`s name, second item is probability, third item is number of symptoms
+    :param sym: list of symptom`s name
+    :param p_symptoms_diseases: matrix of symptoms frequency for every diseases 
+    :return: matrix of inverted probabilities
+    """
     p_symptoms_not_diseases = [[0] * len(symptoms_array) for i in range(len(diseases_array))]
     for i in range(len(dis)):
         for j in range(len(sym)):
@@ -88,15 +116,17 @@ def calc_invert_symptoms_diseases_matrix(diseases_array, symptoms_array, dis, sy
                 p_symptoms_not_diseases[i][j] = summ / (len(dis) - 1)
             except  ZeroDivisionError:
                 p_symptoms_not_diseases[i][j] = summ
-    print(p_symptoms_not_diseases)
     return p_symptoms_not_diseases
 
 
-def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
+def bayes_probability(dis: list, sym: list, p_symptoms_diseases: list, p_symptoms_not_diseases: list) -> list:
     """
-    p_s_d: "cимптом s при условии заболевания d"
-    p_d: "заболевание d (без уточнения)"
-    p_s_not_d: "cимптом s при условии заболевания не d"
+    This function calculate Bayesian probabilities
+    :param dis: list of list, first item is disease`s name, second item is probability, third item is number of symptoms
+    :param sym: list of symptom`s name
+    :param p_symptoms_diseases: matrix of symptoms frequency for every diseases 
+    :param p_symptoms_not_diseases: matrix of symptoms frequency for set diseases excluding fixed one
+    :return: modified dis
     """
     for i in range(len(dis)):
         for j in range(len(sym)):
@@ -110,7 +140,18 @@ def bayes_probability(dis, sym, p_symptoms_diseases, p_symptoms_not_diseases):
     return dis
 
 
-def calc_probability(doctor, sex, age, sym: list = [], analysis: list = [], patient="", pk=None):
+def calc_probability(doctor, sex, age, patient: str, sym: list = [], analysis: list = [], pk=None) -> int:
+    """
+    This function calculate probabilities od diseases and check analysis values 
+    :param doctor: instance of type User: 
+    :param sex: id param of patient`s sex
+    :param age:  id param of patient`s age
+    :param sym:  list of symptoms id, default []
+    :param analysis: list of analysis id, default []
+    :param patient: fullname of patient
+    :param pk: pk param of existed examination, default None
+    :return pk of modified Examination instance: 
+    """
     if pk:
         examination = Examination.objects.get(pk=pk)
         examination.doctor = doctor
@@ -126,7 +167,6 @@ def calc_probability(doctor, sex, age, sym: list = [], analysis: list = [], pati
     examination.diseases.all().delete()
     examination.diseases.clear()
     sym = list(filter(lambda elem: elem != '', sym))
-    print(sym)
     symptoms_array = Symptom.objects.filter(id__in=sym)
     examination.symptoms.add(*symptoms_array)
     diseases_array = Disease.objects.filter(symptoms__in=symptoms_array).order_by("name")
@@ -169,3 +209,44 @@ def calc_probability(doctor, sex, age, sym: list = [], analysis: list = [], pati
 
     examination.save()
     return examination.pk
+
+
+def create_dataset(filename):
+    file = open(filename, "w", encoding="UTF-8")
+
+    symptoms = Symptom.objects.all()
+    diseases = Disease.objects.all()
+    matrix = calc_symptoms_diseases_matrix(diseases, symptoms)
+    file.write(','.join(str(sym.id) for sym in symptoms))
+    file.write("\n")
+    for i in range(len(matrix)):
+        file.write(','.join(map(str, matrix[i])) + ',' + str(diseases[i].id) + '\n')
+    file.close()
+
+
+def readData(filename):
+    dataset = pd.read_csv(filename, usecols=[0, 1], encoding='UTF-8')[1:]
+    dataset.columns = ['content', 'label']
+    return dataset
+
+
+def learn(train_set):
+    n = train_set.shape[0]
+    m = 71
+    X = np.zeros((n, m))
+    for i in range(n):
+        X[i, :] = train_set.iloc[i].content
+    Y = train_set.label
+    model = BernoulliNB()
+    model.fit(X, Y)
+
+    Y_hat = model.predict(X)
+    accuracy = metrics.accuracy_score(Y, Y_hat)
+    print('Accuarcy: {}'.format(accuracy))
+    return model
+
+
+def predict(lst, model):
+    X = lst
+    Y_hat = model.predict(X.reshape(1, -1))
+    print(Y_hat, lst)

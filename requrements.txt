@@ -5,3 +5,15 @@ djangorestframework-jwt==1.11.0
 psycopg2-binary==2.7.4
 PyJWT==1.6.1
 pytz==2018.3
+pandas==0.23.0
+numpy==1.14.3
+python==dateutil-2.7.3
+six==1.11.0
+scikit-learn==0.19.1
+sklearn==0.0
+skypy==1.1
+scipy-1.1.0
+dj-database-url==0.4.1
+gunicorn==19.6.0
+whitenoise==2.0.6
+
