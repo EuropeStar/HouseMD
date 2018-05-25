@@ -26,7 +26,7 @@ class AnalysisParams(models.Model):
     result = models.BooleanField(default=False, verbose_name="результат")
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name = "параметр анализа"
@@ -108,6 +108,9 @@ class DiseaseAnalysis(models.Model):
     sign = models.CharField(max_length=2, verbose_name='знак отклонения',
                             choices=(('<', '<'), ('>', '>'), ('<>', '<>')), default='<>')
 
+    def __str__(self):
+        return self.sign
+
 
 class DiseaseProbability(models.Model):
     disease = models.ForeignKey(to=Disease, verbose_name="заболевание", on_delete=models.CASCADE)
@@ -187,6 +190,7 @@ class Examination(models.Model):
     meds = models.ManyToManyField(to=Med, related_name="examinations", verbose_name='лечащие препараты')
     date_time = models.DateTimeField(auto_now=True)
     analysis = models.ManyToManyField(to=AnalysisParams, verbose_name="анализы", related_name="examinations")
+    result = models.ForeignKey(Disease, on_delete=models.CASCADE , verbose_name='выбранный диагноз', null=True, blank=True)
 
     def __str__(self):
         return self.patient + str(self.date_time)
@@ -223,15 +227,16 @@ class Notification(models.Model):
         (REJECTED, 'Диагноз отклонен'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь')
-    diagnosis = models.ForeignKey(Disease, on_delete=models.CASCADE, verbose_name='диагноз')
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications' , verbose_name='от пользователя')
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_notifications', verbose_name='к пользователю')
+    examination = models.ForeignKey(Examination, on_delete=models.CASCADE, verbose_name='исследование')
     description = models.CharField(max_length=255, blank=True, verbose_name='описание')
     status = models.IntegerField(blank=False, verbose_name='статус диагноза', choices=DIAGNOSIS_STATUS_CHOICES)
     date_time = models.DateTimeField(auto_now=True)
     is_readed = models.BooleanField(default=False, verbose_name='прочитано')
 
     def __str__(self):
-        return self.diagnosis.name + ' ' + str(self.status)
+        return self.examination.result.name + ' ' + str(self.status)
 
     class Meta:
         verbose_name = "уведомление"

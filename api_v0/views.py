@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -36,6 +37,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+    def filter_queryset(self, queryset):
+        return queryset.exclude(user=self.request.user)
+
 
 class ActiveSubstanceViewSet(viewsets.ModelViewSet):
     queryset = ActiveSubstance.objects.all()
@@ -66,7 +70,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
 
     def filter_queryset(self, queryset):
-        return queryset.filter(user=self.request.user)
+        return queryset.filter(to_user=self.request.user)
 
 @api_view(['GET'])
 def get_user_info(request):
@@ -76,7 +80,7 @@ def get_user_info(request):
 @api_view(['GET'])
 def main(request):
     user = request.user
-    last_notifications = Notification.objects.filter(user=user).order_by('-date_time')[:2]
+    last_notifications = Notification.objects.filter(to_user=user).order_by('-date_time')[:2]
     last_examinatinos = Examination.objects.filter(doctor=user).order_by('-date_time')[:2]
     #notifications_amount = Notification.objects.filter(user=user).count()
 
@@ -112,19 +116,13 @@ def profile(request):
                 return Response(status=400)
 
 
-@api_view(['GET'])
-def notifications(request):
-    user = request.user
-    notifs = Notification.objects.filter(user=user)
-    serializer = NotificationSerializer(notifs, many=True)
-    return Response(serializer.data)
-
-
 @api_view(['POST'])
 def save_examination(request, pk=None):
+    analysis = request.data["analysis"]
+    analysis = map(lambda x: {"id": int(x['id']), "value": int(x['value'])} , analysis)
     new_pk = helpers.calc_probability(doctor=request.user, patient=request.data["patient"],
                                       sex=request.data["sex"], age=request.data["age"],
-                                      sym=request.data["symptoms"], analysis=request.data["analysis"], pk=pk)
+                                      sym=request.data["symptoms"], analysis=list(analysis), pk=pk)
     examination = Examination.objects.get(pk=new_pk)
     serializer = ExaminationSerializer(examination)
     return Response(serializer.data)
@@ -138,3 +136,16 @@ def request_research_meta(request):
         'symptoms': symptoms.data,
         'analysis': analysis.data
     })
+
+@api_view(['POST'])
+def send_notification(request):
+    user = get_object_or_404(User, id=request.data['user_id'])
+    exam = get_object_or_404(Examination, id=request.data['ex_id'])
+    new_notif = Notification()
+    new_notif.examination = exam
+    new_notif.from_user = request.user
+    new_notif.to_user = user
+    new_notif.is_readed = False
+    new_notif.status = Notification.REQUESTED
+    new_notif.save()
+    return Response(status=200)

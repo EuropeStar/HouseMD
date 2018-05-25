@@ -18,6 +18,7 @@ router.register(r'side_effects', SideEffectViewSet)
 router.register(r'analysis_params', AnalysisParamsViewSet)
 router.register(r'examinations', ExaminationViewSet)
 router.register(r'notifications', NotificationViewSet)
+router.register(r'doctors', ProfileViewSet)
 
 
 urlpatterns = [
@@ -28,8 +29,8 @@ urlpatterns = [
     url(r'get_user_info', get_user_info),
     path('dashboard', main, name='main'),
     path('profile', profile, name='profile'),
-    path('notifications', notifications, name='notifications'),
     path('save-examination', save_examination, name='save-examination'),
     path('save-examination/<int:pk>', save_examination, name='save-examination'),
-    path('research_meta', request_research_meta, name='research_meta')
+    path('research_meta', request_research_meta, name='research_meta'),
+    path('send_notification', send_notification, name='send_notification')
 ]

@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 
 import numpy as np
 import pandas as pd
+from django.db.transaction import atomic
 from sklearn import metrics
 from sklearn.naive_bayes import BernoulliNB
 
@@ -166,7 +167,8 @@ def calc_probability(doctor, sex, age, patient: str, sym: list = [], analysis: l
     examination.symptoms.clear()
     examination.diseases.all().delete()
     examination.diseases.clear()
-    sym = list(filter(lambda elem: elem != '', sym))
+    sym = list(filter(lambda elem: elem not in ['', ','], sym))
+    print(sym)
     symptoms_array = Symptom.objects.filter(id__in=sym)
     examination.symptoms.add(*symptoms_array)
     diseases_array = Disease.objects.filter(symptoms__in=symptoms_array).order_by("name")
@@ -201,13 +203,12 @@ def calc_probability(doctor, sex, age, patient: str, sym: list = [], analysis: l
     for i in range(len(dis)):
         disease_prob = DiseaseProbability(disease=diseases_array[i], prob=round(dis[i][1], 2))
         for an in examination.analysis.all().filter(result=True):
-            dis_an = DiseaseAnalysis.objects.get(disease=diseases_array[i], analysis=an)
-            if dis_an == None:
-                continue
-            sign = dis_an.sign
-            if ((an.deviation > 0 and sign in (">", "<>")) or
-                    (an.deviation < 0 and sign in ("<", "<>"))):
-                disease_prob.analysis_result.add(an)
+            sign = DiseaseAnalysis.objects.filter(disease=diseases_array[i], analysis=an.name).first()
+            if sign:
+                sign = sign.sign
+                if ((an.deviation > 0 and sign in (">", "<>")) or
+                        (an.deviation < 0 and sign in ("<", "<>"))):
+                    disease_prob.analysis_result.add(an)
         disease_prob.save()
         examination.diseases.add(disease_prob)
 

@@ -104,7 +104,7 @@ class ExaminationSerializer(ModelSerializer):
         fields = '__all__'
 
 class NotificationSerializer(ModelSerializer):
-    diagnosis = DiseaseSerializer(many=True)
+    examination = ExaminationSerializer()
     class Meta:
         model = Notification
         fields = '__all__'
