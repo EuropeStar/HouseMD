@@ -188,12 +188,15 @@ def calc_probability(doctor, sex, age, patient: str, sym: list = [], analysis: l
         analysis_template = AnalysisConstants.objects.get(id=an["id"])
         scope = float(analysis_template.upper_bound - analysis_template.lower_bound)
         value = float(an["value"])
-        if analysis_template.lower_bound <= value <= analysis_template.upper_bound:
+        try:
+            if analysis_template.lower_bound <= value <= analysis_template.upper_bound:
+                deviation = 0
+            elif value <= analysis_template.upper_bound:
+                deviation = - (float(analysis_template.lower_bound) - value) / scope
+            else:
+                deviation = (float(analysis_template.upper_bound) - value) / scope
+        except ZeroDivisionError:
             deviation = 0
-        elif value <= analysis_template.upper_bound:
-            deviation = - (float(analysis_template.lower_bound) - value) / scope
-        else:
-            deviation = (float(analysis_template.upper_bound) - value) / scope
         analysis_record = AnalysisParams(name=analysis_template, value=value, deviation=deviation,
                                          result=deviation != 0)
         analysis_record.save()
